@@ -86,7 +86,7 @@
 <script>
 //시작함수
 function makeMarkdown(){
-    //p태그 배열로 나눈 후 각각의 p태그는 재귀함수로 감.
+    //p태그 배열로 나눈 후 각각의 p태그는 분류함수로 감.
     var ptags = $(".ql-editor").first().contents();
     ptags.each(function(index){
         //혹시라도 p가 아닐지 모르니까 체크
@@ -96,41 +96,62 @@ function makeMarkdown(){
         }
     });
 }
-//재귀함수
+
+//분류함수
 function eachTagToMarkdown(elmt){
     $(elmt).contents().each(function(index){
         if(this.nodeType === 3){
             //텍스트 노드인 경우 출력
-            console.log(this);
+            console.log(this.nodeValue);
         } else if (this.nodeType=== 1){
             //태그인 경우 어떤 태그인지에 따라 결정.
             if($(this).prop("tagName")==="SPAN"){
                 spanToMarkdown(this);
             }
             if($(this).prop("tagName")==="A"){
-                var regexurl = /(https?:\/\/)?namu.wiki\/w\/.*/
-                if(regexurl.test(this.href)){
-                    //나무위키 문서 링크일 경우 문서명만 마크다운으로 출력.
-                    var child = $(this).contents().first();
-                    if(child.nodeType === 1){
-                        //이미지일 경우
-
-                        //사이즈나 색상 변형이 된 텍스트일 경우
-                    }
-                    if(child.nodeType === 3){
-                        //텍스트일 경우
-                        //텍스트와 링크된 문서명이 같은 경우
-                        console.log("[[");
-                        console.log(url.slice("namu.wiki/w/",-1));
-                        console.log("]]");
-                    }
-                }
+                anchorToMarkdown(this);
             }
         }
     });
 }
 
+function anchorToMarkdown(elmt){
+    var regexurl = /(https?:\/\/)?namu.wiki\/w\/.*/;
+    var link = elmt.href;
+    if(regexurl.test(elmt.href)){
+        var link = elmt.href.slice("namu.wiki/w/",-1);
+    }
+    //나무위키 문서 링크일 경우 문서명만 마크다운으로 출력.
+    var child = $(elmt).contents().first();
+    if(child.nodeType === 1){
+        console.log("[[" + link + "|");
+        if(child.tagName === "IMG"){
+            //이미지일 경우
+            console.log("[[이미지이름]]");
+        }else if(child.tagName === "IMG"){
+            //사이즈나 색상 변형이 된 텍스트일 경우
+            spanToMarkdown(child); //사이즈
+        }
+        console.log("]]");
+    }
+    if(child.nodeType === 3){
+        //텍스트일 경우
+        if(child.nodeValue === link){
+            //출력글자와 링크된 문서명이 같은 경우 [[문서명]]
+            console.log("[[");
+            console.log(link);
+            console.log("]]");
+        } else {
+            //출력글자와 링크가 다른 경우 [[문서명 혹은 url|출력글자]]
+            console.log("[[");
+            console.log(link);
+            console.log("|"+child.nodeValue+"]]");
+        }
+    }
+}
+
 function spanToMarkdown(elmt){
+    //분류함수로 다시 보냄
     console.log("{{{");
     console.log($(elmt).css("font-size"));
     
