@@ -53,7 +53,10 @@ $('.quill-editor').each(function(i, el) {//index, element
     el.parent().append(div);
 
     quill = new Quill('#' + id, {
-        modules:{ toolbar: '#toolbar', blotFormatter: { specs: [ CustomImageSpec ] }},
+        modules:{ 
+          toolbar: {container:'#toolbar',handlers: {'insertHeart': insertHeart}},
+          blotFormatter: { specs: [ CustomImageSpec ] }
+        },
         theme: 'snow'
     });
     
