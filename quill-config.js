@@ -1,4 +1,12 @@
 //**********************************************************************************************
+//image resizer module
+Quill.register('modules/blotFormatter', QuillBlotFormatter.default);
+class CustomImageSpec extends QuillBlotFormatter.ImageSpec {
+    getActions() {
+        return [QuillBlotFormatter.ResizeAction];
+    }
+}
+//**********************************************************************************************
 //Check if input is url or document name.
 var Link = Quill.import('formats/link');
 Link.sanitize = function(url) {
@@ -45,7 +53,7 @@ $('.quill-editor').each(function(i, el) {//index, element
     el.parent().append(div);
 
     quill = new Quill('#' + id, {
-        modules:{ toolbar: '#toolbar'},
+        modules:{ toolbar: '#toolbar', blotFormatter: { specs: [ CustomImageSpec ] }},
         theme: 'snow'
     });
     

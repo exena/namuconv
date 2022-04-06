@@ -52,7 +52,7 @@
             <!-- Add image button -->
             <span class="ql-formats">
                 <button class="ql-link" onclick="checkIfSelected()"></button>
-                <button class="ql-image"></button>
+                <button class="ql-image" onclick="imageButtonPressed()"></button>
                 <button class="ql-video"></button>
             </span>
             <!-- Add code-block button -->
@@ -82,9 +82,17 @@
 
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script src="quill-blot-formatter.min.js"></script>
 <script src="quill-config.js"></script>
+
 <script>
-//시작함수
+//파이어폭스 쓰면 이 알림이 바로 뜬다. 다른 브라우저는 이미지 버튼 누르면 뜬다.
+var agent = window.navigator.userAgent.toLowerCase();
+if(agent.indexOf("firefox") > -1){
+    alert("이미지 파일 업로드는 https://namu.wiki/Upload 이곳에서 해주시고 마크다운으로 변환한뒤 파일명을 직접 적어주세요");
+}
+
+//마크다운 변환 시동함수
 function makeMarkdown(){
     //p태그 배열로 나눈 후 각각의 p태그는 분류함수로 감.
     var ptags = $(".ql-editor").first().contents();
@@ -111,69 +119,98 @@ function eachTagToMarkdown(elmt){
             if($(this).prop("tagName")==="A"){
                 anchorToMarkdown(this);
             }
+            if($(this).prop("tagName")==="IMG"){
+                imgToMarkdown(this);
+            }
         }
     });
+}
+
+function imgToMarkdown(elmt){
+    if (typeof $(elmt).attr('style') === 'undefined' || $(elmt).attr('style') === false){
+        console.log("[[파일:이미지이름.확장자]]");
+    }else{
+        console.log("[[파일:이미지이름.확장자|width="+$(elmt).css("width").replace("px","")+"]]");
+    }
 }
 
 function anchorToMarkdown(elmt){
     var regexurl = /(https?:\/\/)?namu.wiki\/w\/.*/;
     var link = elmt.href;
     if(regexurl.test(elmt.href)){
+        //나무위키 문서의 url일 경우 url에서 문서명만 따서 저장.
         var link = elmt.href.slice("namu.wiki/w/",-1);
     }
-    //나무위키 문서 링크일 경우 문서명만 마크다운으로 출력.
-    var child = $(elmt).contents().first();
-    if(child.nodeType === 1){
-        console.log("[[" + link + "|");
-        if(child.tagName === "IMG"){
-            //이미지일 경우
-            console.log("[[이미지이름]]");
-        }else if(child.tagName === "IMG"){
-            //사이즈나 색상 변형이 된 텍스트일 경우
-            spanToMarkdown(child); //사이즈
-        }
-        console.log("]]");
-    }
-    if(child.nodeType === 3){
-        //텍스트일 경우
-        if(child.nodeValue === link){
-            //출력글자와 링크된 문서명이 같은 경우 [[문서명]]
-            console.log("[[");
-            console.log(link);
+    $(elmt).contents().each(function(index){
+        if(this.nodeType === 1){
+            console.log("[[" + link + "|");
+            if(this.tagName === "IMG"){
+                //이미지일 경우
+                console.log("[[파일:이미지이름.확장자]]");
+            }else if(this.tagName === "ETC"){
+                //이미지 이외의 경우
+                alert("매튜 여기 좀 이상해");
+            }
             console.log("]]");
-        } else {
-            //출력글자와 링크가 다른 경우 [[문서명 혹은 url|출력글자]]
-            console.log("[[");
-            console.log(link);
-            console.log("|"+child.nodeValue+"]]");
         }
-    }
+        if(this.nodeType === 3){
+            //텍스트일 경우
+            if(this.nodeValue === link){
+                //출력글자와 링크된 문서명이 같은 경우 [[문서명]]
+                console.log("[[");
+                console.log(link);
+                console.log("]]");
+            } else {
+                //출력글자와 링크가 다른 경우 [[문서명 혹은 url|출력글자]]
+                console.log("[[");
+                console.log(link);
+                console.log("|"+this.nodeValue+"]]");
+            }
+        }
+    });
 }
 
 function spanToMarkdown(elmt){
-    //분류함수로 다시 보냄
     console.log("{{{");
-    console.log($(elmt).css("font-size"));
-    
+    //console.log($(elmt).css("font-size"));
+    var fontsizemd = "";
     switch($(elmt).css("font-size")){
-        case "0.56rem": console.log("-5 "); break;
-        case "0.583rem": console.log("-4 "); break;
-        case "0.668rem": console.log("-3 "); break;
-        case "0.75rem": console.log("-2 "); break;
-        case "0.833rem": console.log("-1 "); break;
-        case "1.16rem": console.log("+1 "); break;
-        case "1.25rem": console.log("+2 "); break;
-        case "1.332rem": console.log("+3 "); break;
-        case "1.417rem": console.log("+4 "); break;
-        case "1.5rem": console.log("+5 "); break;
+        case "0.56rem": fontsizemd = "-5 "; break;
+        case "0.583rem": fontsizemd = "-4 "; break;
+        case "0.668rem": fontsizemd = "-3 "; break;
+        case "0.75rem": fontsizemd = "-2 "; break;
+        case "0.833rem": fontsizemd = "-1 "; break;
+        case "1.16rem": fontsizemd = "+1 "; break;
+        case "1.25rem": fontsizemd = "+2 "; break;
+        case "1.332rem": fontsizemd = "+3 "; break;
+        case "1.417rem": fontsizemd = "+4 ";break;
+        case "1.5rem": fontsizemd = "+5 "; break;
     }
-    eachTagToMarkdown(elmt);
+    console.log(fontsizemd);
+    $(elmt).contents().each(function(index){
+        if(this.nodeType === 3){
+            //텍스트 노드인 경우 출력
+            console.log(this.nodeValue);
+        }
+        if(this.nodeType === 1){
+            if(this.tagName === "IMG"){
+                //이미지 태그일 경우
+                console.log("}}}[[파일:이미지이름.확장자]]{{{"+fontsizemd);
+            }
+        }
+    });
     console.log("}}}");
 }
 
 function checkIfSelected(){
     if(document.getSelection().toString()==""){
         alert("먼저 텍스트나 이미지를 드래그하고 눌러주세요");
+    }
+}
+
+function imageButtonPressed(){
+    if(agent.indexOf("firefox") === -1){
+        alert("이미지 파일 업로드를 https://namu.wiki/Upload 이곳에서 해주시고 마크다운으로 변환한뒤 파일명을 직접 적어주세요");
     }
 }
 </script>
