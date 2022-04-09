@@ -1,4 +1,15 @@
 //**********************************************************************************************
+//custom button functions
+//var quill is at the last part of this file
+function insertHeart() {
+  const cursorPosition = quill.getSelection().index;
+  quill.insertText(cursorPosition, "♥");
+  quill.setSelection(cursorPosition + 1);
+}
+function insertNamuH2() {
+  
+}
+//**********************************************************************************************
 //image resizer module
 Quill.register('modules/blotFormatter', QuillBlotFormatter.default);
 class CustomImageSpec extends QuillBlotFormatter.ImageSpec {
