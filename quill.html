@@ -99,12 +99,15 @@ if(agent.indexOf("firefox") > -1){
 
 //마크다운 변환 시동함수
 function makeMarkdown(){
-    //p태그 배열로 나눈 후 각각의 p태그는 분류함수로 감.
-    var ptags = $(".ql-editor").first().contents();
-    ptags.each(function(index){
-        //혹시라도 p가 아닐지 모르니까 체크
+    //p태그 아니면 pre태그다.
+    var tags = $(".ql-editor").first().contents();
+    tags.each(function(index){
         if(this.nodeType === 1 && $(this).prop("tagName")==="P"){ 
             eachTagToMarkdown(this);
+            console.log("\n");
+        }
+        else if(this.nodeType === 1 && $(this).prop("className")==="namuH2"){
+            console.log("=="+this.nodeValue+"==");
             console.log("\n");
         }
     });
